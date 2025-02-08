@@ -63,9 +63,12 @@
     <Target Name="ExportAfterBuild" AfterTargets="Build" Condition="Exists($(AppDataRoamingVSDir))">
         <PropertyGroup>
             <OutputLocation Condition="'$(OutputLocation)' == ''">Client</OutputLocation>
+            <IsBothLocations Condition="'$(OutputLocation)' != 'Client' and '$(OutputLocation)' != 'Server'">true</IsBothLocations>
+            <OutputLocation Condition="'$(IsBothLocations)' == 'true'">Client</OutputLocation>
         </PropertyGroup>
         <Delete Files="$(OutputPath)\*.deps.json"/>
         <MakeDir Directories="$(AppDataRoamingVSDir)\Development\$(OutputLocation)" Condition="!Exists('$(AppDataRoamingVSDir)\Development\$(OutputLocation)')"/>
         <ZipDirectory Overwrite="true" DestinationFile="$(AppDataRoamingVSDir)\Development\$(OutputLocation)\$(AssemblyName).zip" SourceDirectory="$(OutputPath)"/>
+        <ZipDirectory Overwrite="true" Condition="'$(IsBothLocations)' == 'true'" DestinationFile="$(AppDataRoamingVSDir)\Development\Server\$(AssemblyName).zip" SourceDirectory="$(OutputPath)"/>
     </Target>
 </Project>
