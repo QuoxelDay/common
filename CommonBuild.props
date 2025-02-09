@@ -60,6 +60,33 @@
             <Private>False</Private>
         </Reference>
     </ItemGroup>
+
+
+    <Target Name="ImportLocalModReferences"
+            Condition="'@(OutputReference)' != ''"
+            BeforeTargets="ResolveReferences">
+
+        <PropertyGroup>
+            <AbsoluteIntermediateOutput>$(ProjectDir)$(IntermediateOutputPath)</AbsoluteIntermediateOutput>
+        </PropertyGroup>
+        <ItemGroup>
+            <OutputModPackages Include="@(OutputReference)">
+                <!-- For each mod, we expect the downloaded zip to be named as below and unzipped into a folder with the same name -->
+                <ActualModPath>$(AppDataRoamingVSDir)\Development\%(Identity).zip</ActualModPath>
+                <UnzipFolder>$(AbsoluteIntermediateOutput)/ModRefs/%(Identity)-LOCALDB</UnzipFolder>
+            </OutputModPackages>
+        </ItemGroup>
+        
+        <RemoveDir Condition="Exists('%(OutputModPackages.UnzipFolder)')"
+                   Directories="%(OutputModPackages.UnzipFolder"/>
+        <Unzip SourceFiles="%(OutputModPackages.ActualModPath)"
+               DestinationFolder="%(OutputModPackages.UnzipFolder)" />
+        <ItemGroup>
+            <LocalModAssemblies Include="%(OutputModPackages.UnzipFolder)\**\*.dll" />
+            <ReferencePath Include="@(LocalModAssemblies)" />
+        </ItemGroup>
+    </Target>
+    
     <Target Name="ExportAfterBuild" AfterTargets="Build" Condition="Exists($(AppDataRoamingVSDir))">
         <PropertyGroup>
             <OutputLocation Condition="'$(OutputLocation)' == ''">Client</OutputLocation>
@@ -70,4 +97,5 @@
         <ZipDirectory Overwrite="true" DestinationFile="$(AppDataRoamingVSDir)\Development\$(OutputLocation)\$(AssemblyName).zip" SourceDirectory="$(OutputPath)"/>
         <ZipDirectory Overwrite="true" Condition="'$(IsBothLocations)' == 'true'" DestinationFile="$(AppDataRoamingVSDir)\Development\Server\$(AssemblyName).zip" SourceDirectory="$(OutputPath)"/>
     </Target>
+    
 </Project>
